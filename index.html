@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Study Planner</title>
+    <meta name="description" content="Plan Smarter. Study Better. A minimalist planner to generate study schedules for exams." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#6C63FF',
+              secondary: '#A3A1FB',
+              accent: '#7EE7D2',
+              ink: '#0F172A',
+              soft: '#F8FAFC',
+            },
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui']
+            },
+            boxShadow: { glow: '0 10px 30px rgba(108, 99, 255, 0.25)' }
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      html { scroll-behavior: smooth; }
+      .hero-gradient {
+        background: radial-gradient(ellipse 80% 60% at 60% 0%, rgba(108,99,255,0.13) 0%, transparent 70%),
+                    radial-gradient(ellipse 60% 50% at 10% 90%, rgba(126,231,210,0.15) 0%, transparent 70%);
+      }
+      .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+      .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(108,99,255,0.15); }
+      .feature-card { transition: transform 0.2s, box-shadow 0.2s; }
+      .feature-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(108,99,255,0.12); }
+      @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+      .float { animation: float 4s ease-in-out infinite; }
+      .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    </style>
+  </head>
+  <body class="bg-soft text-ink font-sans selection:bg-secondary/20">
+
+    <!-- Nav -->
+    <nav class="fixed top-0 inset-x-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 bg-white/80 border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="./index.html" class="flex items-center gap-2 group">
+          <span class="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-primary shadow-glow text-white text-xs font-black">S</span>
+          <span class="font-extrabold tracking-tight text-xl">Smart Study Planner</span>
+        </a>
+        <div class="hidden sm:flex items-center gap-6 text-sm font-medium">
+          <a class="hover:text-primary transition-colors" href="#features">Features</a>
+          <a class="hover:text-primary transition-colors" href="#how">How it works</a>
+          <a class="hover:text-primary transition-colors" href="#saved">Saved Plans</a>
+          <a class="hover:text-primary transition-colors" href="./planner.html">Planner</a>
+        </div>
+        <a href="./planner.html" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow hover:-translate-y-0.5 transition-all">Get Started →</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="relative overflow-hidden pt-32 pb-24 hero-gradient">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold mb-5">
+            <span class="pulse-dot inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+            AI-powered study planner
+          </div>
+          <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+            Plan Smarter.<br><span class="text-primary">Study Better.</span>
+          </h1>
+          <p class="mt-4 text-slate-600 text-lg leading-relaxed">
+            Turn your subjects, topics, and subtopics into a balanced day-wise schedule automatically. Built for exam prep — clean, fast, and smart.
+          </p>
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="./planner.html" class="rounded-full bg-primary text-white px-6 py-3 font-semibold shadow-glow hover:scale-[1.02] active:scale-[0.99] transition-transform">Generate My Plan</a>
+            <a href="#features" class="rounded-full bg-white text-ink px-6 py-3 font-semibold shadow hover:shadow-lg border border-slate-200 hover:-translate-y-0.5 transition-all">Learn more ↓</a>
+          </div>
+          <!-- Stats -->
+          <div class="mt-10 grid grid-cols-3 gap-4">
+            <div class="stat-card bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+              <div class="text-2xl font-black text-primary">∞</div>
+              <div class="text-xs text-slate-500 mt-1">Subjects</div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+              <div class="text-2xl font-black text-primary">AI</div>
+              <div class="text-xs text-slate-500 mt-1">Quizzes</div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+              <div class="text-2xl font-black text-primary">0₹</div>
+              <div class="text-xs text-slate-500 mt-1">Free forever</div>
+            </div>
+          </div>
+        </div>
+        <!-- Hero card -->
+        <div class="relative float">
+          <div class="rounded-3xl bg-white shadow-xl border border-slate-200 p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-2 h-2 rounded-full bg-red-400"></div>
+              <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <div class="w-2 h-2 rounded-full bg-green-400"></div>
+              <div class="ml-2 text-xs text-slate-400 font-medium">study-planner.app</div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center gap-3 bg-primary/5 rounded-xl p-3">
+                <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">M</div>
+                <div class="flex-1">
+                  <div class="text-sm font-semibold">Mathematics</div>
+                  <div class="text-xs text-slate-500">3 topics • 9 subtopics</div>
+                </div>
+                <div class="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">67%</div>
+              </div>
+              <div class="flex items-center gap-3 bg-accent/10 rounded-xl p-3">
+                <div class="w-8 h-8 rounded-lg bg-accent/30 flex items-center justify-center text-teal-700 text-xs font-bold">P</div>
+                <div class="flex-1">
+                  <div class="text-sm font-semibold">Physics</div>
+                  <div class="text-xs text-slate-500">4 topics • 12 subtopics</div>
+                </div>
+                <div class="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2 py-1 rounded-full">33%</div>
+              </div>
+              <div class="flex items-center gap-3 bg-secondary/10 rounded-xl p-3">
+                <div class="w-8 h-8 rounded-lg bg-secondary/30 flex items-center justify-center text-primary text-xs font-bold">C</div>
+                <div class="flex-1">
+                  <div class="text-sm font-semibold">Chemistry</div>
+                  <div class="text-xs text-slate-500">2 topics • 6 subtopics</div>
+                </div>
+                <div class="text-xs text-slate-500 font-semibold bg-slate-100 px-2 py-1 rounded-full">0%</div>
+              </div>
+            </div>
+            <div class="mt-4 bg-slate-50 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-600">Overall Progress</span>
+                <span class="text-xs font-bold text-primary">40%</span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-2">
+                <div class="bg-primary h-2 rounded-full" style="width:40%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Features -->
+    <section id="features" class="py-20">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-extrabold">Why students love it</h2>
+          <p class="text-slate-500 mt-2">Everything you need, nothing you don't.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          <article class="feature-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl mb-4">⚡</div>
+            <h3 class="font-bold text-lg">Fast plan generation</h3>
+            <p class="text-slate-600 mt-2 text-sm">Turn subjects → topics → subtopics into a schedule in seconds with weighted priority.</p>
+            <ul class="mt-4 text-slate-600 list-disc pl-5 space-y-1 text-sm">
+              <li>Day-wise breakdown with time slots</li>
+              <li>Balanced & weighted time allocation</li>
+              <li>Auto revision & break sessions</li>
+              <li>Save plans locally</li>
+            </ul>
+          </article>
+          <article class="feature-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center text-xl mb-4">🎯</div>
+            <h3 class="font-bold text-lg">Track progress & practice</h3>
+            <p class="text-slate-600 mt-2 text-sm">Mark sessions done, see progress visually, and take AI-powered quizzes.</p>
+            <ul class="mt-4 text-slate-600 list-disc pl-5 space-y-1 text-sm">
+              <li>Per-session completion tracking</li>
+              <li>AI quizzes via Claude API</li>
+              <li>Pomodoro focus timer</li>
+              <li>Resource links (YouTube/Google)</li>
+            </ul>
+          </article>
+          <article class="feature-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center text-xl mb-4">🔔</div>
+            <h3 class="font-bold text-lg">Reminders & export</h3>
+            <p class="text-slate-600 mt-2 text-sm">Never miss a session with smart reminders and export your plan anywhere.</p>
+            <ul class="mt-4 text-slate-600 list-disc pl-5 space-y-1 text-sm">
+              <li>Browser notifications</li>
+              <li>WhatsApp reminders</li>
+              <li>Export to PDF or CSV</li>
+              <li>Download as .ics calendar file</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-extrabold">How it works</h2>
+          <p class="text-slate-500 mt-2">Four simple steps to exam-ready.</p>
+        </div>
+        <div class="max-w-3xl mx-auto">
+          <ol class="space-y-4">
+            <li class="bg-soft rounded-2xl p-5 border border-slate-200 shadow-sm flex gap-4 items-start">
+              <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">1</span>
+              <div>
+                <h3 class="font-bold">Add inputs</h3>
+                <p class="text-slate-600 mt-1 text-sm">Enter days until exam, hours per day, and build subjects with topics and subtopics. Set priority weights per subject.</p>
+              </div>
+            </li>
+            <li class="bg-soft rounded-2xl p-5 border border-slate-200 shadow-sm flex gap-4 items-start">
+              <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">2</span>
+              <div>
+                <h3 class="font-bold">Generate schedule</h3>
+                <p class="text-slate-600 mt-1 text-sm">The planner distributes time across subtopics based on priority. Revision and break slots are inserted automatically.</p>
+              </div>
+            </li>
+            <li class="bg-soft rounded-2xl p-5 border border-slate-200 shadow-sm flex gap-4 items-start">
+              <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">3</span>
+              <div>
+                <h3 class="font-bold">Review, track, and practice</h3>
+                <p class="text-slate-600 mt-1 text-sm">See a day-wise timeline. Mark sessions done, use the Pomodoro timer, take AI quizzes, and add personal notes.</p>
+              </div>
+            </li>
+            <li class="bg-soft rounded-2xl p-5 border border-slate-200 shadow-sm flex gap-4 items-start">
+              <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">4</span>
+              <div>
+                <h3 class="font-bold">Save, export, and revisit</h3>
+                <p class="text-slate-600 mt-1 text-sm">Save plans locally, export to PDF/CSV/.ics, and revisit from the Saved Plans section anytime.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+        <div class="text-center mt-10">
+          <a href="./planner.html" class="inline-block rounded-full bg-primary text-white px-6 py-3 font-semibold shadow-glow hover:-translate-y-0.5 transition-all">Open Planner →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Saved Plans -->
+    <section id="saved" class="py-20">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-3xl font-extrabold">Saved Plans</h2>
+            <p class="text-slate-500 mt-1">Your previously generated study plans.</p>
+          </div>
+          <a href="./planner.html" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow">+ New Plan</a>
+        </div>
+        <div class="flex flex-wrap gap-3 mb-6">
+          <input id="savedFilterEmail" type="email" placeholder="Filter by email (optional)" class="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 w-64" />
+          <button onclick="loadSaved()" class="rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white hover:bg-slate-50">Filter</button>
+          <button onclick="clearAllPlans()" class="rounded-xl border border-red-200 px-3 py-2 text-sm bg-white hover:bg-red-50 text-red-600">Clear All</button>
+        </div>
+        <div id="savedPlansList" class="grid md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <footer class="py-10 border-t border-slate-200 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+        <span>© <span id="year"></span> Smart Study Planner — Built for students, by students.</span>
+        <div class="flex gap-4">
+          <a href="./planner.html" class="hover:text-primary transition-colors">Planner</a>
+          <a href="./plans.html" class="hover:text-primary transition-colors">All Plans</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // ── Safe localStorage helper ──────────────────────────────────────────
+      function safeSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch (e) {
+          alert('Storage is full. Please delete some saved plans to continue.');
+          return false;
+        }
+      }
+
+      // ── Saved Plans ───────────────────────────────────────────────────────
+      function loadSaved() {
+        const listEl = document.getElementById('savedPlansList');
+        const filterEmail = document.getElementById('savedFilterEmail');
+        if (!listEl) return;
+        const all = JSON.parse(localStorage.getItem('ssp_plans') || '[]');
+        const email = (filterEmail ? filterEmail.value : localStorage.getItem('ssp_email') || '').trim();
+        const plans = email ? all.filter(p => (p.userEmail || '') === email) : all;
+        renderSaved(plans.sort((a, b) => b.createdAt - a.createdAt));
+      }
+
+      function renderSaved(plans) {
+        const listEl = document.getElementById('savedPlansList');
+        listEl.innerHTML = '';
+        if (!plans.length) {
+          listEl.innerHTML = '<div class="col-span-2 text-center py-12 text-slate-400"><div class="text-4xl mb-3">📭</div><div>No saved plans yet. <a href="./planner.html" class="text-primary underline">Create one now!</a></div></div>';
+          return;
+        }
+        plans.forEach(plan => {
+          const totalHours = (plan.schedule || []).reduce((s, i) => s + i.hours, 0).toFixed(1);
+          const prog = JSON.parse(localStorage.getItem('ssp_item_progress') || '{}');
+          const done = (plan.schedule || []).filter(i => {
+            const key = `${i.dateISO || 'live'}|${i.start}|${i.subject}|${i.topic}|${i.subtopic}`;
+            return prog[key]?.done;
+          }).length;
+          const total = (plan.schedule || []).length;
+          const pct = total ? Math.round((done / total) * 100) : 0;
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow';
+          const created = new Date(plan.createdAt).toLocaleString();
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="font-bold truncate">${plan.inputs?.startDate || 'Plan'}</div>
+                <div class="text-xs text-slate-500 mt-0.5">${created}</div>
+                <div class="text-xs text-slate-500">${totalHours} hrs · ${total} sessions</div>
+              </div>
+              <div class="flex gap-2 shrink-0">
+                <button class="view rounded-full bg-primary text-white px-3 py-1 text-xs font-semibold">View</button>
+                <button class="delete rounded-full bg-white px-3 py-1 border border-slate-200 text-xs text-red-500">Delete</button>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs text-slate-500">Progress</span>
+                <span class="text-xs font-bold text-primary">${pct}%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div class="bg-primary h-1.5 rounded-full transition-all" style="width:${pct}%"></div>
+              </div>
+            </div>
+            <div class="mt-2 text-xs text-slate-400">Email: ${plan.userEmail || '—'}</div>
+          `;
+          card.querySelector('.view').addEventListener('click', () => viewPlan(plan));
+          card.querySelector('.delete').addEventListener('click', () => deletePlan(plan.id));
+          listEl.appendChild(card);
+        });
+      }
+
+      function viewPlan(plan) {
+        const planJson = encodeURIComponent(JSON.stringify(plan.schedule || []));
+        const w = window.open('', '_blank');
+        const html = `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Saved Plan</title><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;padding:20px;background:#F8FAFC;color:#0F172A}.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:12px}.done{opacity:.6;text-decoration:line-through}h1{font-weight:800;font-size:22px;margin:0 0 16px}#summary{background:#6C63FF;color:#fff;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-weight:600}</style></head><body><h1>📅 Saved Study Plan</h1><div id="summary">Loading…</div><div id="root"></div><script>(function(){const schedule=JSON.parse(decodeURIComponent('${planJson}'));const root=document.getElementById("root");const KEY="ssp_item_progress";const prog=JSON.parse(localStorage.getItem(KEY)||"{}");function k(i){return(i.dateISO||"live")+"|"+i.start+"|"+i.subject+"|"+i.topic+"|"+i.subtopic}function updateSummary(){const all=root.querySelectorAll("[data-item]");let total=all.length,done=0;all.forEach(x=>{if(x.querySelector("input[type=checkbox]").checked)done++;});document.getElementById("summary").textContent="Progress: "+done+"/"+total+" ("+(total?Math.round(done/total*100):0)+"%) done"}const by={};schedule.forEach(s=>{const key=s.dateISO||("Day "+s.day);if(!by[key])by[key]={label:s.dateLabel||("Day "+s.day),items:[]};by[key].items.push(s);});Object.keys(by).forEach(key=>{const g=by[key];const sec=document.createElement("div");sec.className="card";sec.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong>'+g.label+'</strong><span style="font-size:12px;color:#64748b">'+g.items.reduce((s,i)=>s+i.hours,0).toFixed(1)+'h</span></div>';g.items.forEach(i=>{const c=document.createElement("div");c.className="card";c.setAttribute("data-item","1");const key=k(i);const isDone=!!prog[key]?.done;if(isDone)c.classList.add("done");c.innerHTML='<div style="display:flex;justify-content:space-between"><div><div style="font-size:12px;color:#64748b">'+i.subject+' · '+i.topic+'</div><div style="font-weight:700">'+i.subtopic+'</div></div><div style="text-align:right"><div style="font-size:12px;color:#64748b">'+i.start+' – '+i.end+'</div><div style="margin-top:4px;font-size:12px;font-weight:600;background:#f1f5f9;border-radius:9999px;padding:2px 10px;display:inline-block">'+i.hours+'h</div><label style="display:block;margin-top:6px;font-size:12px;color:#475569"><input type="checkbox" '+(isDone?"checked":"")+'/> Mark done</label></div></div>';const cb=c.querySelector("input");cb.addEventListener("change",()=>{prog[key]={done:cb.checked,doneAt:Date.now()};localStorage.setItem(KEY,JSON.stringify(prog));c.classList.toggle("done",cb.checked);updateSummary();});sec.appendChild(c);});root.appendChild(sec);});updateSummary();}());<\/script></body></html>`;
+        w.document.write(html);
+        w.document.close();
+      }
+
+      function deletePlan(id) {
+        if (!confirm('Delete this plan?')) return;
+        const all = JSON.parse(localStorage.getItem('ssp_plans') || '[]');
+        safeSet('ssp_plans', JSON.stringify(all.filter(p => p.id !== id)));
+        loadSaved();
+      }
+
+      function clearAllPlans() {
+        if (!confirm('Delete ALL saved plans? This cannot be undone.')) return;
+        safeSet('ssp_plans', '[]');
+        loadSaved();
+      }
+
+      document.getElementById('savedFilterEmail').addEventListener('input', loadSaved);
+      loadSaved();
+    </script>
+  </body>
+</html>

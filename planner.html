@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planner • Smart Study Planner</title>
+    <meta name="description" content="Generate a balanced study schedule from your subjects and topics." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: '#6C63FF', secondary: '#A3A1FB', accent: '#7EE7D2', ink: '#0F172A', soft: '#F8FAFC' },
+            fontFamily: { sans: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui'] },
+            boxShadow: { glow: '0 10px 30px rgba(108, 99, 255, 0.25)' },
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+      .session-card { transition: box-shadow 0.2s, transform 0.15s; }
+      .session-card:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(108,99,255,0.10); }
+      .done-card { opacity: 0.6; }
+      .done-card .subtopic-title { text-decoration: line-through; }
+      /* Pomodoro */
+      #pomodoroRing { transition: stroke-dashoffset 1s linear; }
+      /* Priority slider */
+      input[type=range].priority-slider { accent-color: #6C63FF; }
+      @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+      .animate-in { animation: slideIn 0.25s ease-out forwards; }
+    </style>
+  </head>
+  <body class="bg-soft text-ink font-sans selection:bg-secondary/20">
+
+    <!-- Nav -->
+    <nav class="fixed top-0 inset-x-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 bg-white/80 border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="./index.html" class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-primary shadow-glow text-white text-xs font-black">S</span>
+          <span class="font-extrabold tracking-tight text-xl">Smart Study Planner</span>
+        </a>
+        <div class="hidden sm:flex items-center gap-4 text-sm font-medium">
+          <a href="./index.html#features" class="hover:text-primary transition-colors">Features</a>
+          <a href="./plans.html" class="hover:text-primary transition-colors">Saved Plans</a>
+        </div>
+        <a href="#results" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow">View Plan ↓</a>
+      </div>
+    </nav>
+
+    <main class="pt-28 pb-24">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="flex items-start justify-between flex-wrap gap-4 mb-2">
+          <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Create your plan</h1>
+            <p class="text-slate-500 mt-1">Fill in your details. Time is balanced across subtopics by priority.</p>
+          </div>
+          <!-- Template picker -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-slate-600">Template:</label>
+            <select id="templatePicker" class="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white">
+              <option value="">— Pick a template —</option>
+              <option value="jee">JEE Mains (Physics, Chemistry, Maths)</option>
+              <option value="neet">NEET (Biology, Physics, Chemistry)</option>
+              <option value="upsc">UPSC Prelims (GS, CSAT)</option>
+              <option value="dbms">DBMS Exam (3 core topics)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inputs grid -->
+        <div class="mt-6 grid sm:grid-cols-2 md:grid-cols-5 gap-4">
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <label class="text-sm font-semibold">Days until exam</label>
+            <input id="days" type="number" min="1" value="7" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <label class="text-sm font-semibold">Hours per day</label>
+            <input id="hoursPerDay" type="number" min="1" max="16" value="3" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <label class="text-sm font-semibold">Start date</label>
+            <input id="startDate" type="date" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <label class="text-sm font-semibold">Daily start time</label>
+            <input id="startTime" type="time" value="09:00" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <label class="text-sm font-semibold">Number of subjects</label>
+            <input id="numSubjects" type="number" min="1" max="10" value="2" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+        </div>
+
+        <!-- Options row -->
+        <div class="mt-4 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-wrap gap-6 items-center">
+          <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+            <input type="checkbox" id="includeRevision" class="rounded accent-primary" checked />
+            Auto-insert revision slots (every 3 sessions)
+          </label>
+          <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+            <input type="checkbox" id="includeBreaks" class="rounded accent-primary" />
+            Include 15-min break sessions daily
+          </label>
+          <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+            <input type="checkbox" id="weightedMode" class="rounded accent-primary" />
+            Priority-weighted scheduling
+          </label>
+        </div>
+
+        <!-- Subjects -->
+        <div id="subjectsContainer" class="mt-6 space-y-4"></div>
+
+        <!-- Action buttons -->
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button id="addSubject" class="rounded-full bg-white text-ink px-4 py-2 font-semibold shadow border border-slate-200 hover:-translate-y-0.5 transition-all text-sm">+ Add Subject</button>
+          <button id="generatePlan" class="rounded-full bg-primary text-white px-6 py-2 font-semibold shadow-glow hover:scale-[1.02] transition-transform text-sm">⚡ Generate Plan</button>
+          <button id="savePlan" class="rounded-full bg-white text-ink px-4 py-2 font-semibold shadow border border-slate-200 text-sm hover:-translate-y-0.5 transition-all">💾 Save Plan</button>
+          <button id="exportCSV" class="rounded-full bg-white text-ink px-4 py-2 font-semibold shadow border border-slate-200 text-sm hover:-translate-y-0.5 transition-all">📊 Export CSV</button>
+          <button id="exportICS" class="rounded-full bg-white text-ink px-4 py-2 font-semibold shadow border border-slate-200 text-sm hover:-translate-y-0.5 transition-all">📅 Export .ics</button>
+          <button id="openSettings" class="rounded-full bg-white text-ink px-4 py-2 font-semibold shadow border border-slate-200 text-sm hover:-translate-y-0.5 transition-all">⚙️ Settings</button>
+        </div>
+
+        <!-- Results -->
+        <section id="results" class="mt-12">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div>
+              <h2 class="text-2xl font-bold">Your schedule</h2>
+              <div id="progressSummary" class="text-sm text-slate-500 mt-1"></div>
+            </div>
+            <!-- Search/filter -->
+            <input id="scheduleFilter" type="text" placeholder="🔍 Filter by subject or topic…" class="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 w-56 bg-white" />
+          </div>
+          <!-- Progress bar -->
+          <div id="progressBarWrap" class="hidden mb-6">
+            <div class="w-full bg-slate-100 rounded-full h-2.5">
+              <div id="progressBar" class="bg-primary h-2.5 rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+          </div>
+          <div id="timeline" class="grid lg:grid-cols-2 gap-4"></div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="bg-white rounded-2xl p-6 w-[min(560px,92vw)] border border-slate-200 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="settingsTitle" class="text-lg font-bold">Settings</h3>
+          <button id="closeSettings" class="rounded-full px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm">✕ Close</button>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label class="text-sm font-semibold">Email (Login)</label>
+            <input id="userEmail" type="email" placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+            <p class="text-xs text-slate-400 mt-1">Used to identify your saved plans.</p>
+          </div>
+          <div>
+            <label class="text-sm font-semibold">WhatsApp Number</label>
+            <input id="whatsNumber" type="tel" placeholder="91XXXXXXXXXX" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+            <p class="text-xs text-slate-400 mt-1">Include country code, no + sign.</p>
+          </div>
+          <div>
+            <label class="text-sm font-semibold">Anthropic API Key</label>
+            <input id="apiKey" type="password" placeholder="sk-ant-…" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+            <p class="text-xs text-slate-400 mt-1">For AI-powered quizzes. Stored locally.</p>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+              <input id="enableReminders" type="checkbox" class="rounded accent-primary" />
+              Enable browser reminders 10 min before each session
+            </label>
+          </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+          <p class="text-xs text-slate-400 flex-1">All data stored locally on your device.</p>
+          <button id="saveSettings" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quizModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-labelledby="quizTitle">
+      <div class="bg-white rounded-2xl p-6 w-[min(720px,94vw)] border border-slate-200 shadow-xl max-h-[85vh] overflow-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="quizTitle" class="text-lg font-bold">Quiz</h3>
+          <button id="closeQuiz" class="rounded-full px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm">✕ Close</button>
+        </div>
+        <div id="quizLoading" class="hidden text-center py-8">
+          <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+          <div class="text-slate-500 text-sm">Generating quiz with AI…</div>
+        </div>
+        <div id="quizBody" class="space-y-3 text-sm"></div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+          <button id="revealAnswers" class="rounded-full bg-white px-4 py-2 border border-slate-200 text-sm">Reveal answers</button>
+          <button id="markComplete" class="rounded-full bg-primary text-white px-4 py-2 font-semibold text-sm">Mark complete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pomodoro Modal -->
+    <div id="pomodoroModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" role="dialog" aria-modal="true">
+      <div class="bg-white rounded-2xl p-8 w-[min(380px,92vw)] border border-slate-200 shadow-xl text-center">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold">🍅 Pomodoro Timer</h3>
+          <button id="closePom" class="rounded-full px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm">✕</button>
+        </div>
+        <div id="pomSubject" class="text-sm text-slate-500 mb-4"></div>
+        <div class="relative w-36 h-36 mx-auto mb-6">
+          <svg class="w-36 h-36 -rotate-90" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="#F1F5F9" stroke-width="10"/>
+            <circle id="pomodoroRing" cx="60" cy="60" r="54" fill="none" stroke="#6C63FF" stroke-width="10"
+              stroke-dasharray="339.3" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span id="pomTime" class="text-3xl font-black text-ink">25:00</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <button id="pomStart" class="rounded-full bg-primary text-white px-5 py-2 font-semibold text-sm shadow-glow">▶ Start</button>
+          <button id="pomPause" class="rounded-full bg-white border border-slate-200 px-5 py-2 font-semibold text-sm">⏸ Pause</button>
+          <button id="pomReset" class="rounded-full bg-white border border-slate-200 px-5 py-2 font-semibold text-sm">↺ Reset</button>
+        </div>
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-500">
+          <label>Duration:
+            <select id="pomDuration" class="rounded-lg border border-slate-200 px-2 py-1 ml-1">
+              <option value="25">25 min</option>
+              <option value="45">45 min</option>
+              <option value="60">60 min</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" role="dialog" aria-modal="true">
+      <div class="bg-white rounded-2xl p-6 w-[min(480px,92vw)] border border-slate-200 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold">📝 Session Notes</h3>
+          <button id="closeNotes" class="rounded-full px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm">✕</button>
+        </div>
+        <div id="notesSubject" class="text-sm text-slate-500 mb-3"></div>
+        <textarea id="notesArea" rows="6" placeholder="Write your notes, key points, or questions here…" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"></textarea>
+        <div class="mt-4 flex justify-end gap-2">
+          <button id="saveNotes" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow">Save Notes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject / Topic / Subtopic Templates -->
+    <template id="subjectTemplate">
+      <div class="subject bg-white rounded-2xl p-5 border border-slate-200 shadow-sm animate-in">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="flex-1 min-w-0">
+            <label class="text-sm font-semibold">Subject name</label>
+            <input type="text" placeholder="e.g., DBMS" class="subject-name mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <div class="priority-wrap hidden flex-col gap-1">
+            <label class="text-xs font-semibold text-slate-500">Priority <span class="priority-val font-bold text-primary">3</span>/5</label>
+            <input type="range" min="1" max="5" value="3" class="priority-slider w-28" />
+          </div>
+          <button class="remove-subject rounded-full px-3 py-2 bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors text-sm shrink-0">Remove</button>
+        </div>
+        <div class="topics mt-4 space-y-3"></div>
+        <button class="add-topic mt-4 rounded-full bg-secondary text-white px-3 py-2 text-sm font-semibold hover:-translate-y-0.5 transition-all">+ Add Topic</button>
+      </div>
+    </template>
+
+    <template id="topicTemplate">
+      <div class="topic bg-slate-50 rounded-xl p-4 border border-slate-200 animate-in">
+        <div class="flex items-center gap-3">
+          <input type="text" placeholder="Topic (e.g., ER Diagrams)" class="topic-name flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          <button class="remove-topic rounded-full px-3 py-2 bg-white border border-slate-200 hover:bg-red-50 hover:text-red-500 transition-colors text-sm">Remove</button>
+        </div>
+        <div class="subtopics mt-3 space-y-2"></div>
+        <button class="add-subtopic mt-3 rounded-full bg-accent text-ink px-3 py-1.5 text-sm font-semibold hover:-translate-y-0.5 transition-all">+ Add Subtopic</button>
+      </div>
+    </template>
+
+    <template id="subtopicTemplate">
+      <div class="subtopic flex items-center gap-2 animate-in">
+        <input type="text" placeholder="Subtopic (e.g., Intro to Normalization)" class="subtopic-name flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" />
+        <button class="remove-subtopic rounded-full px-3 py-2 bg-white border border-slate-200 hover:bg-red-50 hover:text-red-500 transition-colors text-sm">✕</button>
+      </div>
+    </template>
+
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+
+      // ── Element refs (all declared up front — fixes startDateInput bug) ──
+      const subjectsContainer  = document.getElementById('subjectsContainer');
+      const subjectTpl         = document.getElementById('subjectTemplate');
+      const topicTpl           = document.getElementById('topicTemplate');
+      const subtopicTpl        = document.getElementById('subtopicTemplate');
+      const addSubjectBtn      = document.getElementById('addSubject');
+      const numSubjectsInput   = document.getElementById('numSubjects');
+      const startDateInput     = document.getElementById('startDate');   // FIX: declared here
+      const startTimeInput     = document.getElementById('startTime');
+      const daysInput          = document.getElementById('days');
+      const hoursPerDayInput   = document.getElementById('hoursPerDay');
+      const timelineEl         = document.getElementById('timeline');
+      const scheduleFilter     = document.getElementById('scheduleFilter');
+      const progressSummaryEl  = document.getElementById('progressSummary');
+      const progressBar        = document.getElementById('progressBar');
+      const progressBarWrap    = document.getElementById('progressBarWrap');
+
+      const settingsModal      = document.getElementById('settingsModal');
+      const openSettingsBtn    = document.getElementById('openSettings');
+      const closeSettingsBtn   = document.getElementById('closeSettings');
+      const saveSettingsBtn    = document.getElementById('saveSettings');
+      const whatsNumberInput   = document.getElementById('whatsNumber');
+      const enableRemindersInput = document.getElementById('enableReminders');
+      const userEmailInput     = document.getElementById('userEmail');
+      const apiKeyInput        = document.getElementById('apiKey');
+
+      const quizModal          = document.getElementById('quizModal');
+      const quizTitle          = document.getElementById('quizTitle');
+      const quizBody           = document.getElementById('quizBody');
+      const quizLoading        = document.getElementById('quizLoading');
+      const closeQuizBtn       = document.getElementById('closeQuiz');
+      const revealAnswersBtn   = document.getElementById('revealAnswers');
+      const markCompleteBtn    = document.getElementById('markComplete');
+
+      const pomodoroModal      = document.getElementById('pomodoroModal');
+      const closePomBtn        = document.getElementById('closePom');
+      const pomTimeEl          = document.getElementById('pomTime');
+      const pomRing            = document.getElementById('pomodoroRing');
+      const pomStartBtn        = document.getElementById('pomStart');
+      const pomPauseBtn        = document.getElementById('pomPause');
+      const pomResetBtn        = document.getElementById('pomReset');
+      const pomDurationSel     = document.getElementById('pomDuration');
+      const pomSubjectEl       = document.getElementById('pomSubject');
+
+      const notesModal         = document.getElementById('notesModal');
+      const closeNotesBtn      = document.getElementById('closeNotes');
+      const notesArea          = document.getElementById('notesArea');
+      const saveNotesBtn       = document.getElementById('saveNotes');
+      const notesSubjectEl     = document.getElementById('notesSubject');
+
+      const templatePicker     = document.getElementById('templatePicker');
+      const includeRevision    = document.getElementById('includeRevision');
+      const includeBreaks      = document.getElementById('includeBreaks');
+      const weightedMode       = document.getElementById('weightedMode');
+
+      // Set today as default date
+      startDateInput.value = new Date().toISOString().slice(0, 10);
+
+      // ── State ─────────────────────────────────────────────────────────────
+      let lastSchedule = [];
+      let currentQuizKey = null;
+      let quizObserver = null;    // FIX: track observer to disconnect it
+      let currentNotesKey = null;
+      let reminderTimeouts = [];
+
+      const ITEM_PROGRESS_KEY = 'ssp_item_progress';
+      const NOTES_KEY = 'ssp_notes';
+
+      // ── Safe storage ──────────────────────────────────────────────────────
+      function safeSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch (e) {
+          alert('Storage is full. Please delete some saved plans.');
+          return false;
+        }
+      }
+
+      function getItemKey(item) {
+        return `${item.dateISO || 'live'}|${item.start}|${item.subject}|${item.topic}|${item.subtopic}`;
+      }
+      function loadItemProgress() { return JSON.parse(localStorage.getItem(ITEM_PROGRESS_KEY) || '{}'); }
+      function saveItemProgress(map) { safeSet(ITEM_PROGRESS_KEY, JSON.stringify(map)); }
+
+      // ── Templates ─────────────────────────────────────────────────────────
+      const TEMPLATES = {
+        jee: {
+          subjects: [
+            { name: 'Physics', topics: [
+              { name: 'Mechanics', subtopics: ['Laws of Motion', 'Work & Energy', 'Rotational Motion'] },
+              { name: 'Electromagnetism', subtopics: ['Coulombs Law', 'Capacitors', 'Magnetic Fields'] },
+            ]},
+            { name: 'Chemistry', topics: [
+              { name: 'Physical Chemistry', subtopics: ['Mole Concept', 'Equilibrium', 'Thermodynamics'] },
+              { name: 'Organic Chemistry', subtopics: ['Hydrocarbons', 'Functional Groups', 'Named Reactions'] },
+            ]},
+            { name: 'Mathematics', topics: [
+              { name: 'Calculus', subtopics: ['Limits', 'Differentiation', 'Integration'] },
+              { name: 'Algebra', subtopics: ['Matrices', 'Complex Numbers', 'Quadratic Equations'] },
+            ]},
+          ]
+        },
+        neet: {
+          subjects: [
+            { name: 'Biology', topics: [
+              { name: 'Cell Biology', subtopics: ['Cell Structure', 'Cell Division', 'Biomolecules'] },
+              { name: 'Genetics', subtopics: ['Mendelian Genetics', 'DNA Replication', 'Evolution'] },
+            ]},
+            { name: 'Physics', topics: [
+              { name: 'Optics', subtopics: ['Ray Optics', 'Wave Optics'] },
+            ]},
+            { name: 'Chemistry', topics: [
+              { name: 'Inorganic', subtopics: ['Periodic Table', 'Chemical Bonding'] },
+            ]},
+          ]
+        },
+        upsc: {
+          subjects: [
+            { name: 'General Studies', topics: [
+              { name: 'History', subtopics: ['Ancient India', 'Medieval India', 'Modern India', 'World History'] },
+              { name: 'Geography', subtopics: ['Physical Geography', 'Indian Geography', 'World Geography'] },
+              { name: 'Economy', subtopics: ['Basics of Economy', 'Budget & Fiscal Policy', 'Agriculture'] },
+            ]},
+            { name: 'CSAT', topics: [
+              { name: 'Reasoning', subtopics: ['Analytical Reasoning', 'Decision Making'] },
+              { name: 'Quantitative Aptitude', subtopics: ['Data Interpretation', 'Basic Math'] },
+            ]},
+          ]
+        },
+        dbms: {
+          subjects: [
+            { name: 'DBMS', topics: [
+              { name: 'ER Model', subtopics: ['ER Diagrams', 'Entities & Attributes', 'Relationships'] },
+              { name: 'Normalization', subtopics: ['1NF', '2NF', '3NF', 'BCNF'] },
+              { name: 'SQL', subtopics: ['DDL Commands', 'DML Commands', 'Joins', 'Subqueries'] },
+            ]},
+          ]
+        },
+      };
+
+      templatePicker.addEventListener('change', () => {
+        const tpl = TEMPLATES[templatePicker.value];
+        if (!tpl) return;
+        if (!confirm('This will replace current subjects. Continue?')) { templatePicker.value = ''; return; }
+        subjectsContainer.innerHTML = '';
+        tpl.subjects.forEach(s => addSubject(s));
+        numSubjectsInput.value = tpl.subjects.length;
+        templatePicker.value = '';
+      });
+
+      // ── Priority slider toggle ─────────────────────────────────────────────
+      weightedMode.addEventListener('change', () => {
+        document.querySelectorAll('.priority-wrap').forEach(el => el.classList.toggle('hidden', !weightedMode.checked));
+        document.querySelectorAll('.priority-wrap').forEach(el => el.classList.toggle('flex', weightedMode.checked));
+      });
+
+      // ── Subject / Topic / Subtopic builders ───────────────────────────────
+      function addSubject(prefill) {
+        const el = subjectTpl.content.firstElementChild.cloneNode(true);
+        const topicsEl = el.querySelector('.topics');
+        const prioritySlider = el.querySelector('.priority-slider');
+        const priorityVal = el.querySelector('.priority-val');
+        const priorityWrap = el.querySelector('.priority-wrap');
+
+        el.querySelector('.remove-subject').addEventListener('click', () => el.remove());
+        el.querySelector('.add-topic').addEventListener('click', () => addTopic(topicsEl));
+        prioritySlider.addEventListener('input', () => { priorityVal.textContent = prioritySlider.value; });
+
+        if (weightedMode.checked) { priorityWrap.classList.remove('hidden'); priorityWrap.classList.add('flex'); }
+        if (prefill?.name) el.querySelector('.subject-name').value = prefill.name;
+        if (prefill?.priority) { prioritySlider.value = prefill.priority; priorityVal.textContent = prefill.priority; }
+
+        subjectsContainer.appendChild(el);
+
+        if (prefill?.topics?.length) {
+          prefill.topics.forEach(t => addTopic(topicsEl, t));
+        } else {
+          addTopic(topicsEl);
+        }
+      }
+
+      function addTopic(container, prefill) {
+        const el = topicTpl.content.firstElementChild.cloneNode(true);
+        const subtopicsEl = el.querySelector('.subtopics');
+        el.querySelector('.remove-topic').addEventListener('click', () => el.remove());
+        el.querySelector('.add-subtopic').addEventListener('click', () => addSubtopic(subtopicsEl));
+        if (prefill?.name) el.querySelector('.topic-name').value = prefill.name;
+        container.appendChild(el);
+        if (prefill?.subtopics?.length) {
+          prefill.subtopics.forEach(s => addSubtopic(subtopicsEl, { name: s }));
+        } else {
+          addSubtopic(subtopicsEl);
+        }
+      }
+
+      function addSubtopic(container, prefill) {
+        const el = subtopicTpl.content.firstElementChild.cloneNode(true);
+        el.querySelector('.remove-subtopic').addEventListener('click', () => el.remove());
+        if (prefill?.name) el.querySelector('.subtopic-name').value = prefill.name;
+        container.appendChild(el);
+      }
+
+      addSubjectBtn.addEventListener('click', () => addSubject());
+
+      function syncSubjectsCount() {
+        const desired = Math.max(1, Math.min(10, Number(numSubjectsInput.value || 1)));
+        const current = subjectsContainer.querySelectorAll(':scope > .subject').length;
+        if (current < desired) { for (let i = 0; i < desired - current; i++) addSubject(); }
+        else if (current > desired) { for (let i = 0; i < current - desired; i++) subjectsContainer.lastElementChild?.remove(); }
+      }
+      numSubjectsInput.addEventListener('change', syncSubjectsCount);
+      syncSubjectsCount();
+
+      // ── Collect data ───────────────────────────────────────────────────────
+      function collectData() {
+        const days = Math.max(1, Number(daysInput.value || 7));
+        const hoursPerDay = Math.max(0.5, Math.min(16, Number(hoursPerDayInput.value || 3)));
+        const startTime = (startTimeInput.value || '09:00').trim();
+        const startDate = startDateInput.value || new Date().toISOString().slice(0, 10); // FIX: now uses properly declared ref
+        const subjects = [...subjectsContainer.querySelectorAll(':scope > .subject')].map(subjectEl => {
+          const name = subjectEl.querySelector('.subject-name').value.trim() || 'Untitled Subject';
+          const priority = Number(subjectEl.querySelector('.priority-slider')?.value || 3);
+          const topics = [...subjectEl.querySelectorAll('.topic')].map(topicEl => {
+            const tname = topicEl.querySelector('.topic-name').value.trim() || 'Untitled Topic';
+            const subs = [...topicEl.querySelectorAll('.subtopic')].map(subEl => {
+              const sname = subEl.querySelector('.subtopic-name').value.trim();
+              return sname ? { name: sname } : null;
+            }).filter(Boolean);
+            return subs.length ? { name: tname, subtopics: subs } : null;
+          }).filter(Boolean);
+          return topics.length ? { name, priority, topics } : null;
+        }).filter(Boolean);
+        return { days, hoursPerDay, startTime, startDate, subjects };
+      }
+
+      function flattenSubtopics(data) {
+        const flat = [];
+        for (const subject of data.subjects) {
+          const weight = weightedMode.checked ? (subject.priority || 3) : 1;
+          for (const topic of subject.topics) {
+            for (const sub of topic.subtopics) {
+              flat.push({ subject: subject.name, topic: topic.name, subtopic: sub.name, weight });
+            }
+          }
+        }
+        return flat;
+      }
+
+      // ── Time helpers ──────────────────────────────────────────────────────
+      function parseTimeToMinutes(hhmm) {
+        const [h, m] = (hhmm || '09:00').split(':').map(Number);
+        return (isNaN(h) || isNaN(m)) ? 540 : h * 60 + m;
+      }
+      function minutesToTimeLabel(total) {
+        const h = Math.floor(total / 60) % 24;
+        const m = Math.round(total % 60);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const hr12 = ((h + 11) % 12) + 1;
+        return `${hr12}:${m.toString().padStart(2, '0')} ${ampm}`;
+      }
+
+      // ── Schedule generator ────────────────────────────────────────────────
+      function generateSchedule(data) {
+        const tasks = flattenSubtopics(data);
+        if (!tasks.length) return [];
+
+        const totalWeight = tasks.reduce((s, t) => s + t.weight, 0);
+        const totalHours = data.days * data.hoursPerDay;
+
+        const schedule = [];
+        let day = 1;
+        let hoursLeft = data.hoursPerDay;
+        const startMinutes = parseTimeToMinutes(data.startTime);
+        let cursorMinutes = startMinutes;
+        const baseDate = new Date(data.startDate + 'T00:00:00');
+        let sessionCount = 0;
+
+        const getDateInfo = (d) => {
+          const dateObj = new Date(baseDate);
+          dateObj.setDate(baseDate.getDate() + (d - 1));
+          return {
+            dateISO: dateObj.toISOString().slice(0, 10),
+            dateLabel: dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+          };
+        };
+
+        const addSlot = (item, hours) => {
+          const durationMin = Math.round(hours * 60);
+          const { dateISO, dateLabel } = getDateInfo(day);
+          schedule.push({
+            dateISO, dateLabel, day,
+            hours: Number(hours.toFixed(2)),
+            start: minutesToTimeLabel(cursorMinutes),
+            end: minutesToTimeLabel(cursorMinutes + durationMin),
+            ...item
+          });
+          hoursLeft -= hours;
+          cursorMinutes += durationMin;
+          sessionCount++;
+        };
+
+        const nextDay = () => {
+          day++;
+          if (day > data.days) day = data.days;
+          hoursLeft = data.hoursPerDay;
+          cursorMinutes = startMinutes;
+        };
+
+        for (const task of tasks) {
+          const hoursForTask = Math.max(0.5, Number(((totalHours * task.weight / totalWeight)).toFixed(2)));
+          let needed = hoursForTask;
+
+          while (needed > 0.01) {
+            if (hoursLeft <= 0) nextDay();
+
+            // Insert break if enabled
+            if (includeBreaks.checked && cursorMinutes === startMinutes && hoursLeft === data.hoursPerDay) {
+              // Skip break on very first session
+            }
+
+            const used = Math.min(needed, hoursLeft);
+            addSlot({ subject: task.subject, topic: task.topic, subtopic: task.subtopic }, used);
+            needed -= used;
+
+            // Auto revision every 3 sessions
+            if (includeRevision.checked && sessionCount > 0 && sessionCount % 3 === 0) {
+              if (hoursLeft >= 0.5) {
+                addSlot({ subject: 'Revision', topic: 'Quick Review', subtopic: `Review sessions ${sessionCount - 2}–${sessionCount}` }, 0.5);
+              }
+            }
+          }
+        }
+
+        // Daily break slots
+        if (includeBreaks.checked) {
+          const withBreaks = [];
+          const byDay = {};
+          schedule.forEach(s => { (byDay[s.dateISO] = byDay[s.dateISO] || []).push(s); });
+          Object.values(byDay).forEach(slots => {
+            slots.forEach((s, i) => {
+              withBreaks.push(s);
+              if (i === Math.floor(slots.length / 2) - 1 && slots.length > 2) {
+                const mid = slots[i];
+                withBreaks.push({
+                  dateISO: mid.dateISO, dateLabel: mid.dateLabel, day: mid.day,
+                  hours: 0.25, start: mid.end, end: mid.end,
+                  subject: '☕ Break', topic: 'Break', subtopic: '15-minute break'
+                });
+              }
+            });
+          });
+          return withBreaks;
+        }
+
+        return schedule;
+      }
+
+      // ── Render schedule ───────────────────────────────────────────────────
+      function computeProgress(schedule) {
+        const prog = loadItemProgress();
+        const total = schedule.length;
+        const done = schedule.filter(i => prog[getItemKey(i)]?.done).length;
+        return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
+      }
+
+      function updateProgressUI() {
+        const s = computeProgress(lastSchedule);
+        if (progressSummaryEl) progressSummaryEl.textContent = `Progress: ${s.done}/${s.total} sessions done (${s.pct}%)`;
+        if (progressBar) progressBar.style.width = s.pct + '%';
+        if (progressBarWrap) progressBarWrap.classList.toggle('hidden', s.total === 0);
+      }
+
+      function resourceLinks(subject, subtopic) {
+        const q = encodeURIComponent(`${subtopic} ${subject}`);
+        return { youtube: `https://www.youtube.com/results?search_query=${q}`, google: `https://www.google.com/search?q=${q}` };
+      }
+
+      function renderSchedule(schedule) {
+        timelineEl.innerHTML = '';
+        reminderTimeouts.forEach(id => clearTimeout(id));
+        reminderTimeouts = [];
+
+        if (!schedule.length) {
+          timelineEl.innerHTML = '<div class="col-span-2 text-center py-12 text-slate-400"><div class="text-4xl mb-3">📋</div><div>Add at least one subtopic to generate a plan.</div></div>';
+          return;
+        }
+
+        updateProgressUI();
+
+        const byDay = schedule.reduce((acc, item) => {
+          acc[item.dateISO] = acc[item.dateISO] || { dateLabel: item.dateLabel, items: [] };
+          acc[item.dateISO].items.push(item);
+          return acc;
+        }, {});
+
+        Object.keys(byDay).forEach(dateISO => {
+          const bucket = byDay[dateISO];
+          const dayItems = bucket.items;
+          const dayCard = document.createElement('div');
+          dayCard.className = 'bg-white rounded-2xl p-5 border border-slate-200 shadow-sm avoid-break';
+          dayCard.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold">${bucket.dateLabel}</h3>
+              <span class="text-sm text-slate-400 bg-slate-50 px-2 py-1 rounded-full">${dayItems.reduce((s, i) => s + i.hours, 0).toFixed(1)} hrs</span>
+            </div>`;
+          const list = document.createElement('div');
+          list.className = 'space-y-3';
+
+          dayItems.forEach(item => {
+            const links = resourceLinks(item.subject, item.subtopic);
+            const card = document.createElement('div');
+            const prog = loadItemProgress();
+            const key = getItemKey(item);
+            const isDone = !!prog[key]?.done;
+            const isBreak = item.subject === '☕ Break';
+            const notesData = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+            const hasNotes = !!notesData[key];
+
+            card.className = `session-card rounded-xl border p-4 avoid-break ${isDone ? 'done-card border-slate-100 bg-slate-50' : 'border-slate-200 bg-white'} ${isBreak ? 'border-dashed border-amber-200 bg-amber-50' : ''}`;
+            card.innerHTML = `
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs text-slate-400 font-medium">${item.subject}${item.topic && item.topic !== 'Break' ? ' · ' + item.topic : ''}</div>
+                  <div class="subtopic-title font-bold text-sm mt-0.5 truncate">${item.subtopic}</div>
+                </div>
+                <div class="text-right shrink-0">
+                  <div class="text-xs text-slate-400">${item.start} – ${item.end}</div>
+                  <div class="mt-1 text-xs font-bold bg-slate-100 rounded-full px-2 py-0.5 inline-block">${item.hours}h</div>
+                  <label class="mt-2 flex items-center justify-end gap-1.5 cursor-pointer">
+                    <input type="checkbox" class="mark-done accent-primary" ${isDone ? 'checked' : ''} aria-label="Mark ${item.subtopic} as done"/>
+                    <span class="text-xs text-slate-500">Done</span>
+                  </label>
+                </div>
+              </div>
+              ${!isBreak ? `
+              <div class="mt-3 flex items-center flex-wrap gap-2">
+                <a class="text-xs text-primary hover:underline font-medium" target="_blank" rel="noopener" href="${links.youtube}">▶ YouTube</a>
+                <a class="text-xs text-primary hover:underline font-medium" target="_blank" rel="noopener" href="${links.google}">🔍 Google</a>
+                <button class="quiz-btn text-xs rounded-full bg-secondary/20 text-primary px-2.5 py-1 font-semibold hover:bg-secondary/40 transition-colors" data-key="${encodeURIComponent(item.subject + '|' + item.topic + '|' + item.subtopic)}">🧠 Quiz</button>
+                <button class="pom-btn text-xs rounded-full bg-accent/20 text-teal-700 px-2.5 py-1 font-semibold hover:bg-accent/40 transition-colors" data-label="${item.subtopic} (${item.subject})">🍅 Focus</button>
+                <button class="notes-btn text-xs rounded-full ${hasNotes ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-600'} px-2.5 py-1 font-semibold hover:bg-yellow-100 transition-colors" data-key="${encodeURIComponent(key)}">📝 Notes${hasNotes ? ' ✓' : ''}</button>
+                <a class="text-xs rounded-full bg-green-50 text-green-700 px-2.5 py-1 font-semibold hover:bg-green-100 transition-colors" target="_blank" rel="noopener"
+                  href="https://wa.me/${(localStorage.getItem('ssp_whats') || '').trim()}?text=${encodeURIComponent('📚 Reminder: ' + item.subtopic + ' (' + item.subject + ')  ' + item.start + ' – ' + item.end + ' on ' + item.dateLabel)}">💬 WA</a>
+              </div>` : ''}
+            `;
+
+            // Mark done
+            const checkbox = card.querySelector('.mark-done');
+            if (checkbox) {
+              checkbox.addEventListener('change', () => {
+                const map = loadItemProgress();
+                map[key] = { done: checkbox.checked, doneAt: Date.now() };
+                saveItemProgress(map);
+                card.classList.toggle('done-card', checkbox.checked);
+                card.classList.toggle('border-slate-100', checkbox.checked);
+                card.classList.toggle('bg-slate-50', checkbox.checked);
+                card.classList.toggle('border-slate-200', !checkbox.checked);
+                card.classList.toggle('bg-white', !checkbox.checked);
+                updateProgressUI();
+              });
+            }
+
+            // Quiz button
+            const quizBtn = card.querySelector('.quiz-btn');
+            if (quizBtn) {
+              quizBtn.addEventListener('click', async () => {
+                const k = decodeURIComponent(quizBtn.getAttribute('data-key'));
+                const [subject, topic, subtopic] = k.split('|');
+                currentQuizKey = k;
+                quizTitle.textContent = `🧠 Quiz: ${subtopic}`;
+                quizBody.innerHTML = '';
+                quizLoading.classList.remove('hidden');
+                toggleModal(quizModal, true);
+                try {
+                  const data = await generateQuiz({ subject, topic, subtopic });
+                  quizLoading.classList.add('hidden');
+                  renderQuiz(data);
+                } catch (err) {
+                  quizLoading.classList.add('hidden');
+                  quizBody.innerHTML = `<div class="text-red-500 text-sm">Failed to generate quiz. ${err?.message || 'Check your API key in Settings.'}</div>`;
+                }
+              });
+            }
+
+            // Pomodoro button
+            const pomBtn = card.querySelector('.pom-btn');
+            if (pomBtn) {
+              pomBtn.addEventListener('click', () => {
+                pomSubjectEl.textContent = pomBtn.getAttribute('data-label');
+                resetPomodoro();
+                toggleModal(pomodoroModal, true);
+              });
+            }
+
+            // Notes button
+            const notesBtn = card.querySelector('.notes-btn');
+            if (notesBtn) {
+              notesBtn.addEventListener('click', () => {
+                currentNotesKey = decodeURIComponent(notesBtn.getAttribute('data-key'));
+                notesSubjectEl.textContent = item.subtopic + ' — ' + item.subject;
+                const existing = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+                notesArea.value = existing[currentNotesKey] || '';
+                toggleModal(notesModal, true);
+              });
+            }
+
+            // Reminders
+            if (JSON.parse(localStorage.getItem('ssp_reminders') || 'false')) {
+              scheduleReminder(item);
+            }
+
+            list.appendChild(card);
+          });
+
+          dayCard.appendChild(list);
+          timelineEl.appendChild(dayCard);
+        });
+      }
+
+      // ── Filter schedule ───────────────────────────────────────────────────
+      scheduleFilter.addEventListener('input', () => {
+        const q = scheduleFilter.value.toLowerCase().trim();
+        document.querySelectorAll('#timeline .session-card').forEach(card => {
+          const text = card.textContent.toLowerCase();
+          card.closest('.avoid-break') ? null : null;
+          card.style.display = (!q || text.includes(q)) ? '' : 'none';
+        });
+        // Hide day cards if all sessions hidden
+        document.querySelectorAll('#timeline > div').forEach(dayCard => {
+          const visible = [...dayCard.querySelectorAll('.session-card')].some(c => c.style.display !== 'none');
+          dayCard.style.display = visible ? '' : 'none';
+        });
+      });
+
+      // ── Generate ──────────────────────────────────────────────────────────
+      document.getElementById('generatePlan').addEventListener('click', () => {
+        const data = collectData();
+        if (!data.subjects.length) { alert('Please add at least one subject with a subtopic.'); return; }
+        const schedule = generateSchedule(data);
+        lastSchedule = schedule;
+        renderSchedule(schedule);
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // ── Save Plan ─────────────────────────────────────────────────────────
+      document.getElementById('savePlan').addEventListener('click', () => {
+        if (!lastSchedule.length) { alert('Generate a plan first.'); return; }
+        const inputs = collectData();
+        const userEmail = (userEmailInput.value || localStorage.getItem('ssp_email') || '').trim();
+        const plans = JSON.parse(localStorage.getItem('ssp_plans') || '[]');
+        // FIX: Robust unique ID
+        const id = 'plan_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        const record = { id, version: 1, createdAt: Date.now(), userEmail, inputs, schedule: lastSchedule };
+        plans.push(record);
+        if (safeSet('ssp_plans', JSON.stringify(plans))) {
+          const btn = document.getElementById('savePlan');
+          btn.textContent = '✅ Saved!';
+          setTimeout(() => btn.textContent = '💾 Save Plan', 2000);
+        }
+      });
+
+      // ── Export CSV ────────────────────────────────────────────────────────
+      document.getElementById('exportCSV').addEventListener('click', () => {
+        if (!lastSchedule.length) { alert('Generate a plan first.'); return; }
+        const header = ['Date', 'Day', 'Start', 'End', 'Hours', 'Subject', 'Topic', 'Subtopic'];
+        const rows = lastSchedule.map(i => [i.dateISO, i.day, i.start, i.end, i.hours, i.subject, i.topic, i.subtopic].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+        const csv = [header.join(','), ...rows].join('\n');
+        downloadFile('study-plan.csv', csv, 'text/csv');
+      });
+
+      // ── Export ICS ────────────────────────────────────────────────────────
+      document.getElementById('exportICS').addEventListener('click', () => {
+        if (!lastSchedule.length) { alert('Generate a plan first.'); return; }
+        const pad = n => String(n).padStart(2, '0');
+        const toICSDate = (dateISO, timeLabel) => {
+          const [y, m, d] = dateISO.split('-');
+          const match = timeLabel.match(/(\d+):(\d+) (AM|PM)/);
+          if (!match) return null;
+          let h = Number(match[1]);
+          const min = Number(match[2]);
+          const ampm = match[3];
+          if (ampm === 'PM' && h !== 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+          return `${y}${m}${d}T${pad(h)}${pad(min)}00`;
+        };
+        const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Smart Study Planner//EN', 'CALSCALE:GREGORIAN'];
+        lastSchedule.forEach((item, idx) => {
+          const dtStart = toICSDate(item.dateISO, item.start);
+          const dtEnd = toICSDate(item.dateISO, item.end);
+          if (!dtStart || !dtEnd) return;
+          lines.push('BEGIN:VEVENT', `UID:ssp-${idx}-${Date.now()}@studyplanner`,
+            `DTSTART:${dtStart}`, `DTEND:${dtEnd}`,
+            `SUMMARY:${item.subtopic} (${item.subject})`,
+            `DESCRIPTION:Topic: ${item.topic}\\nSubject: ${item.subject}`,
+            'END:VEVENT');
+        });
+        lines.push('END:VCALENDAR');
+        downloadFile('study-plan.ics', lines.join('\r\n'), 'text/calendar');
+      });
+
+      function downloadFile(filename, content, type) {
+        const blob = new Blob([content], { type });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      // ── Settings ──────────────────────────────────────────────────────────
+      function loadSettings() {
+        whatsNumberInput.value = localStorage.getItem('ssp_whats') || '';
+        enableRemindersInput.checked = JSON.parse(localStorage.getItem('ssp_reminders') || 'false');
+        userEmailInput.value = localStorage.getItem('ssp_email') || '';
+        apiKeyInput.value = localStorage.getItem('ssp_api_key') || '';
+      }
+      function saveSettings() {
+        const whats = whatsNumberInput.value.trim();
+        if (whats && !/^\d{7,15}$/.test(whats)) { alert('WhatsApp number should be digits only with country code, e.g. 919876543210'); return; }
+        safeSet('ssp_whats', whats);
+        safeSet('ssp_reminders', JSON.stringify(!!enableRemindersInput.checked));
+        safeSet('ssp_email', userEmailInput.value.trim());
+        safeSet('ssp_api_key', apiKeyInput.value.trim());
+      }
+      openSettingsBtn.addEventListener('click', () => { loadSettings(); toggleModal(settingsModal, true); });
+      closeSettingsBtn.addEventListener('click', () => toggleModal(settingsModal, false));
+      saveSettingsBtn.addEventListener('click', () => { saveSettings(); toggleModal(settingsModal, false); });
+
+      // ── Modal helper ──────────────────────────────────────────────────────
+      function toggleModal(modal, open) {
+        if (open) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        else { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      }
+
+      // Close modals on backdrop click
+      [settingsModal, quizModal, pomodoroModal, notesModal].forEach(modal => {
+        modal.addEventListener('click', (e) => { if (e.target === modal) toggleModal(modal, false); });
+      });
+
+      // Escape key closes modals - FIX: keyboard accessibility
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          [settingsModal, quizModal, pomodoroModal, notesModal].forEach(m => toggleModal(m, false));
+          if (quizObserver) { quizObserver.disconnect(); quizObserver = null; }
+        }
+      });
+
+      // ── Quiz ──────────────────────────────────────────────────────────────
+      closeQuizBtn.addEventListener('click', () => {
+        // FIX: disconnect observer when closing
+        if (quizObserver) { quizObserver.disconnect(); quizObserver = null; }
+        toggleModal(quizModal, false);
+      });
+
+      revealAnswersBtn.addEventListener('click', () => {
+        quizBody.querySelectorAll('[data-answer]').forEach(a => a.classList.remove('hidden'));
+        quizBody.querySelectorAll('[data-q]').forEach(block => {
+          block.querySelectorAll('.opt').forEach(btn => {
+            if (btn.getAttribute('data-ans') === 'true') btn.classList.add('bg-green-100', 'border-green-400');
+          });
+          const fb = block.querySelector('[data-feedback]');
+          if (fb && !fb.textContent) { fb.textContent = 'Answer revealed'; fb.classList.remove('hidden'); fb.classList.add('text-slate-600'); }
+        });
+      });
+
+      markCompleteBtn.addEventListener('click', () => {
+        if (!currentQuizKey) return;
+        const p = JSON.parse(localStorage.getItem('ssp_progress') || '{}');
+        p[currentQuizKey] = { completedAt: Date.now() };
+        safeSet('ssp_progress', JSON.stringify(p));
+        if (quizObserver) { quizObserver.disconnect(); quizObserver = null; }
+        toggleModal(quizModal, false);
+      });
+
+      function renderQuiz(data) {
+        let score = 0;   // FIX: score is now properly scoped per renderQuiz call
+        const items = data.questions || [];
+        if (!items.length) { quizBody.innerHTML = '<div class="text-slate-500">No questions returned.</div>'; return; }
+
+        quizBody.innerHTML = items.map((q, idx) => {
+          if (q.options && q.answer) {
+            return `<div class="rounded-xl border border-slate-200 p-4" data-q="${idx}">
+              <div class="font-semibold text-sm">Q${idx + 1}. ${q.question}</div>
+              <div class="mt-3 space-y-2">
+                ${q.options.map(o => `<button class="opt rounded-lg border border-slate-200 px-3 py-2 text-left w-full text-sm hover:border-primary/50 transition-colors" data-ans="${o === q.answer}">${o}</button>`).join('')}
+              </div>
+              <div class="mt-2 text-xs hidden" data-feedback></div>
+            </div>`;
+          }
+          return `<div class="rounded-xl border border-slate-200 p-4">
+            <div class="font-semibold text-sm">Q${idx + 1}. ${q.question}</div>
+            <textarea class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none" rows="3" placeholder="Write your answer…"></textarea>
+            ${q.answer ? `<div data-answer class="mt-2 text-xs text-slate-500 hidden">💡 Suggested: ${q.answer}</div>` : ''}
+          </div>`;
+        }).join('');
+
+        quizBody.querySelectorAll('[data-q]').forEach(block => {
+          const feedback = block.querySelector('[data-feedback]');
+          block.querySelectorAll('.opt').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const correct = btn.getAttribute('data-ans') === 'true';
+              block.querySelectorAll('.opt').forEach(b => { b.disabled = true; b.classList.add('cursor-default'); });
+              if (correct) {
+                score++;
+                btn.classList.add('bg-green-100', 'border-green-400');
+                if (feedback) { feedback.textContent = '✅ Correct!'; feedback.classList.remove('hidden'); feedback.classList.add('text-green-600'); }
+              } else {
+                btn.classList.add('bg-red-100', 'border-red-300');
+                block.querySelectorAll('.opt[data-ans="true"]').forEach(b => b.classList.add('bg-green-100', 'border-green-400'));
+                if (feedback) { feedback.textContent = '❌ Incorrect'; feedback.classList.remove('hidden'); feedback.classList.add('text-red-500'); }
+              }
+              updateQuizTitle();
+            });
+          });
+        });
+
+        const mcqCount = items.filter(q => q.options && q.answer).length;
+
+        function updateQuizTitle() {
+          quizTitle.textContent = `🧠 Quiz • Score: ${score}/${mcqCount}`;
+        }
+
+        // FIX: Disconnect old observer before creating new one
+        if (quizObserver) { quizObserver.disconnect(); quizObserver = null; }
+        quizObserver = new MutationObserver(updateQuizTitle);
+        quizObserver.observe(quizBody, { subtree: true, attributes: true, childList: true });
+        updateQuizTitle();
+      }
+
+      async function generateQuiz({ subject, topic, subtopic }) {
+        const apiKey = localStorage.getItem('ssp_api_key') || '';
+        if (apiKey && apiKey.startsWith('sk-ant-')) {
+          // Real AI quiz via Anthropic API
+          try {
+            const resp = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+              body: JSON.stringify({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 1024,
+                messages: [{
+                  role: 'user',
+                  content: `Generate a 5-question quiz on "${subtopic}" in the context of ${subject} (${topic}). 
+Return ONLY a JSON object in this exact format, no extra text:
+{
+  "questions": [
+    { "question": "...", "options": ["A","B","C","D"], "answer": "A" },
+    { "question": "...", "options": ["A","B","C","D"], "answer": "B" },
+    { "question": "...", "answer": "short answer" },
+    { "question": "...", "options": ["A","B","C","D"], "answer": "C" },
+    { "question": "...", "answer": "short answer" }
+  ]
+}`
+                }]
+              })
+            });
+            if (!resp.ok) throw new Error('API error ' + resp.status);
+            const data = await resp.json();
+            const text = data.content.map(b => b.text || '').join('');
+            const clean = text.replace(/```json|```/g, '').trim();
+            return JSON.parse(clean);
+          } catch (err) {
+            console.warn('AI quiz failed, falling back to heuristic:', err);
+          }
+        }
+
+        // Heuristic fallback quiz
+        const templates = [
+          () => ({ question: `Define ${subtopic} in the context of ${subject}.`, answer: `A concise definition of ${subtopic} as used in ${subject}.` }),
+          () => ({ question: `List three key points about ${subtopic}.`, answer: `Any three major points relevant to ${subtopic}.` }),
+          () => ({ question: `Why is ${subtopic} important in ${topic}?`, answer: `It supports core understanding and application in ${topic}.` }),
+          () => ({ question: `Which best describes ${subtopic}?`, options: [`${subtopic} is a core concept in ${subject}.`, `${subtopic} is unrelated to ${subject}.`, `A deprecated technique.`, `A random term with no context.`], answer: `${subtopic} is a core concept in ${subject}.` }),
+          () => ({ question: `Give a practical real-world example involving ${subtopic}.`, answer: `A short scenario applying ${subtopic} in practice.` }),
+        ];
+        return { questions: templates.map(fn => fn()) };
+      }
+
+      // ── Pomodoro Timer ────────────────────────────────────────────────────
+      let pomInterval = null;
+      let pomSecondsLeft = 25 * 60;
+      let pomTotalSeconds = 25 * 60;
+
+      function resetPomodoro() {
+        clearInterval(pomInterval);
+        pomInterval = null;
+        pomTotalSeconds = Number(pomDurationSel.value) * 60;
+        pomSecondsLeft = pomTotalSeconds;
+        updatePomUI();
+      }
+
+      function updatePomUI() {
+        const m = Math.floor(pomSecondsLeft / 60);
+        const s = pomSecondsLeft % 60;
+        pomTimeEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        const progress = (pomTotalSeconds - pomSecondsLeft) / pomTotalSeconds;
+        const circumference = 2 * Math.PI * 54;
+        pomRing.style.strokeDashoffset = circumference * (1 - progress);
+      }
+
+      pomStartBtn.addEventListener('click', () => {
+        if (pomInterval) return;
+        pomInterval = setInterval(() => {
+          pomSecondsLeft--;
+          updatePomUI();
+          if (pomSecondsLeft <= 0) {
+            clearInterval(pomInterval);
+            pomInterval = null;
+            pomTimeEl.textContent = '00:00';
+            if (Notification.permission === 'granted') {
+              new Notification('🍅 Pomodoro done!', { body: 'Time for a break. Great work!' });
+            } else {
+              alert('🍅 Pomodoro complete! Time for a break.');
+            }
+          }
+        }, 1000);
+      });
+
+      pomPauseBtn.addEventListener('click', () => { clearInterval(pomInterval); pomInterval = null; });
+      pomResetBtn.addEventListener('click', resetPomodoro);
+      pomDurationSel.addEventListener('change', resetPomodoro);
+      closePomBtn.addEventListener('click', () => { clearInterval(pomInterval); pomInterval = null; toggleModal(pomodoroModal, false); });
+      resetPomodoro();
+
+      // ── Notes ─────────────────────────────────────────────────────────────
+      closeNotesBtn.addEventListener('click', () => toggleModal(notesModal, false));
+      saveNotesBtn.addEventListener('click', () => {
+        if (!currentNotesKey) return;
+        const notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+        notes[currentNotesKey] = notesArea.value.trim();
+        safeSet(NOTES_KEY, JSON.stringify(notes));
+        toggleModal(notesModal, false);
+        // Refresh to update Notes button indicator
+        renderSchedule(lastSchedule);
+      });
+
+      // ── Reminders ─────────────────────────────────────────────────────────
+      function scheduleReminder(item) {
+        try {
+          if (!('Notification' in window)) return;
+          if (Notification.permission === 'default') Notification.requestPermission();
+          const parseLabel = (label, dateISO) => {
+            const match = label.match(/(\d+):(\d+) (AM|PM)/);
+            if (!match) return null;
+            let h = Number(match[1]);
+            const min = Number(match[2]);
+            if (match[3] === 'PM' && h !== 12) h += 12;
+            if (match[3] === 'AM' && h === 12) h = 0;
+            const [y, mo, d] = dateISO.split('-').map(Number);
+            return new Date(y, mo - 1, d, h, min, 0);
+          };
+          const start = parseLabel(item.start, item.dateISO);
+          if (!start) return;
+          const fireAt = new Date(start.getTime() - 10 * 60 * 1000);
+          const delay = fireAt.getTime() - Date.now();
+          if (delay > 0 && delay < 2147000000) {
+            const id = setTimeout(() => {
+              if (Notification.permission === 'granted') {
+                new Notification('📚 Study Reminder', { body: `${item.subtopic} (${item.subject}) starts in 10 minutes at ${item.start}` });
+              }
+            }, delay);
+            reminderTimeouts.push(id);
+          }
+        } catch (_) {}
+      }
+
+    }); // end DOMContentLoaded
+    </script>
+  </body>
+</html>

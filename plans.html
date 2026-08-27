@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saved Plans • Smart Study Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: '#6C63FF', secondary: '#A3A1FB', accent: '#7EE7D2', ink: '#0F172A', soft: '#F8FAFC' },
+            fontFamily: { sans: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui'] },
+            boxShadow: { glow: '0 10px 30px rgba(108, 99, 255, 0.25)' },
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      .plan-card { transition: box-shadow 0.2s, transform 0.15s; }
+      .plan-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(108,99,255,0.12); }
+    </style>
+  </head>
+  <body class="bg-soft text-ink font-sans">
+
+    <nav class="fixed top-0 inset-x-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 bg-white/80 border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="./index.html" class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-primary shadow-glow text-white text-xs font-black">S</span>
+          <span class="font-extrabold tracking-tight text-xl">Smart Study Planner</span>
+        </a>
+        <div class="hidden sm:flex items-center gap-4 text-sm font-medium">
+          <a href="./planner.html" class="hover:text-primary transition-colors">Planner</a>
+          <a href="./index.html" class="hover:text-primary transition-colors">Home</a>
+        </div>
+        <a href="./planner.html" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow hover:-translate-y-0.5 transition-all">+ New Plan</a>
+      </div>
+    </nav>
+
+    <main class="pt-28 pb-24">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="flex items-start justify-between flex-wrap gap-4 mb-8">
+          <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Saved Plans</h1>
+            <p class="text-slate-500 mt-1">All your previously saved study schedules.</p>
+          </div>
+          <div id="storageInfo" class="text-xs text-slate-400 bg-white border border-slate-200 rounded-xl px-3 py-2"></div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-48">
+            <label class="text-xs font-semibold text-slate-500 block mb-1">Filter by email</label>
+            <input id="filterEmail" type="email" placeholder="you@example.com" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-500 block mb-1">Sort by</label>
+            <select id="sortBy" class="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="progress">Progress (high → low)</option>
+              <option value="hours">Most hours</option>
+            </select>
+          </div>
+          <button onclick="loadPlans()" class="rounded-xl bg-primary text-white px-4 py-2 text-sm font-semibold shadow-glow">Apply</button>
+          <button onclick="clearAll()" class="rounded-xl border border-red-200 text-red-500 px-4 py-2 text-sm font-semibold hover:bg-red-50 transition-colors">Clear All</button>
+        </div>
+
+        <!-- Stats bar -->
+        <div id="statsBar" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8"></div>
+
+        <div id="plansList" class="grid md:grid-cols-2 gap-4"></div>
+
+      </div>
+    </main>
+
+    <script>
+      // ── Safe localStorage ─────────────────────────────────────────────────
+      function safeSet(key, value) {
+        try { localStorage.setItem(key, value); return true; }
+        catch (e) { alert('Storage is full. Please delete some plans.'); return false; }
+      }
+
+      function getItemKey(item) {
+        return `${item.dateISO || 'live'}|${item.start}|${item.subject}|${item.topic}|${item.subtopic}`;
+      }
+
+      function getPlanProgress(plan) {
+        const prog = JSON.parse(localStorage.getItem('ssp_item_progress') || '{}');
+        const total = (plan.schedule || []).length;
+        const done = (plan.schedule || []).filter(i => prog[getItemKey(i)]?.done).length;
+        return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
+      }
+
+      // ── Storage info ──────────────────────────────────────────────────────
+      function updateStorageInfo() {
+        const el = document.getElementById('storageInfo');
+        try {
+          let total = 0;
+          for (let k in localStorage) { if (k.startsWith('ssp_')) total += (localStorage.getItem(k) || '').length; }
+          const kb = (total / 1024).toFixed(1);
+          el.textContent = `Storage used: ~${kb} KB`;
+        } catch (_) {}
+      }
+
+      // ── Load & render ─────────────────────────────────────────────────────
+      function loadPlans() {
+        const listEl = document.getElementById('plansList');
+        const statsBar = document.getElementById('statsBar');
+        const filterEmail = document.getElementById('filterEmail');
+        const sortBy = document.getElementById('sortBy');
+
+        const all = JSON.parse(localStorage.getItem('ssp_plans') || '[]');
+        const email = (filterEmail.value || localStorage.getItem('ssp_email') || '').trim();
+        let plans = email ? all.filter(p => (p.userEmail || '') === email) : all;
+
+        // Sort
+        const sort = sortBy.value;
+        plans = plans.sort((a, b) => {
+          if (sort === 'oldest') return a.createdAt - b.createdAt;
+          if (sort === 'progress') return getPlanProgress(b).pct - getPlanProgress(a).pct;
+          if (sort === 'hours') return (b.schedule || []).reduce((s, i) => s + i.hours, 0) - (a.schedule || []).reduce((s, i) => s + i.hours, 0);
+          return b.createdAt - a.createdAt; // newest
+        });
+
+        // Stats bar
+        const totalHours = plans.reduce((s, p) => s + (p.schedule || []).reduce((ss, i) => ss + i.hours, 0), 0);
+        const totalSessions = plans.reduce((s, p) => s + (p.schedule || []).length, 0);
+        const avgProgress = plans.length ? Math.round(plans.reduce((s, p) => s + getPlanProgress(p).pct, 0) / plans.length) : 0;
+        statsBar.innerHTML = [
+          ['📚', plans.length, 'Plans saved'],
+          ['⏱️', totalHours.toFixed(0) + 'h', 'Total hours'],
+          ['📋', totalSessions, 'Total sessions'],
+          ['📈', avgProgress + '%', 'Avg progress'],
+        ].map(([icon, val, label]) => `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 text-center">
+            <div class="text-2xl mb-1">${icon}</div>
+            <div class="text-xl font-black text-primary">${val}</div>
+            <div class="text-xs text-slate-500 mt-0.5">${label}</div>
+          </div>`).join('');
+
+        render(plans);
+        updateStorageInfo();
+      }
+
+      function render(plans) {
+        const listEl = document.getElementById('plansList');
+        listEl.innerHTML = '';
+        if (!plans.length) {
+          listEl.innerHTML = `<div class="col-span-2 text-center py-16 text-slate-400">
+            <div class="text-5xl mb-4">📭</div>
+            <div class="text-lg font-semibold mb-2">No saved plans yet</div>
+            <a href="./planner.html" class="inline-block mt-2 rounded-full bg-primary text-white px-5 py-2 text-sm font-semibold shadow-glow">Create your first plan →</a>
+          </div>`;
+          return;
+        }
+
+        plans.forEach(plan => {
+          const totalHours = (plan.schedule || []).reduce((s, i) => s + i.hours, 0).toFixed(1);
+          const p = getPlanProgress(plan);
+          const created = new Date(plan.createdAt).toLocaleString();
+          const days = plan.inputs?.days || '?';
+          const subjects = plan.inputs?.subjects?.map(s => s.name).join(', ') || '—';
+
+          const card = document.createElement('div');
+          card.className = 'plan-card bg-white rounded-2xl p-5 border border-slate-200 shadow-sm';
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="font-bold text-base">${plan.inputs?.startDate || 'Plan'}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${created}</div>
+                <div class="text-xs text-slate-500 mt-1 truncate">📚 ${subjects}</div>
+              </div>
+              <div class="shrink-0 text-right">
+                <div class="text-xs text-slate-400">${days} days · ${totalHours}h</div>
+                <div class="text-xs text-slate-400">${(plan.schedule || []).length} sessions</div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-semibold text-slate-500">Progress</span>
+                <span class="text-xs font-bold ${p.pct === 100 ? 'text-green-600' : 'text-primary'}">${p.done}/${p.total} (${p.pct}%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-500 ${p.pct === 100 ? 'bg-green-500' : 'bg-primary'}" style="width:${p.pct}%"></div>
+              </div>
+            </div>
+
+            ${plan.userEmail ? `<div class="mt-3 text-xs text-slate-400">👤 ${plan.userEmail}</div>` : ''}
+            ${plan.version ? `<div class="text-xs text-slate-300">v${plan.version}</div>` : ''}
+
+            <div class="mt-4 flex gap-2 flex-wrap">
+              <button class="view-btn rounded-full bg-primary text-white px-3 py-1.5 text-xs font-semibold shadow-glow hover:-translate-y-0.5 transition-all">View Plan</button>
+              <button class="export-btn rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 transition-colors">Export CSV</button>
+              <button class="delete-btn rounded-full bg-white border border-red-200 text-red-500 px-3 py-1.5 text-xs font-semibold hover:bg-red-50 transition-colors">Delete</button>
+            </div>
+          `;
+
+          card.querySelector('.view-btn').addEventListener('click', () => viewPlan(plan));
+          card.querySelector('.export-btn').addEventListener('click', () => exportCSV(plan));
+          card.querySelector('.delete-btn').addEventListener('click', () => deletePlan(plan.id));
+          listEl.appendChild(card);
+        });
+      }
+
+      function viewPlan(plan) {
+        const planJson = encodeURIComponent(JSON.stringify(plan.schedule || []));
+        const w = window.open('', '_blank');
+        const html = `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Study Plan — ${plan.inputs?.startDate || ''}</title><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;padding:20px;background:#F8FAFC;color:#0F172A;max-width:800px;margin:0 auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:12px}.done-item{opacity:.6}.done-item .title{text-decoration:line-through}h1{font-weight:800;font-size:22px;margin:0 0 4px}#summary{background:#6C63FF;color:#fff;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-weight:600;display:flex;justify-content:space-between;align-items:center}.progress-bar{background:rgba(255,255,255,0.3);border-radius:999px;height:8px;flex:1;margin-left:12px}.progress-fill{background:#fff;height:100%;border-radius:999px;transition:width .3s}@media print{nav,button{display:none}.card{break-inside:avoid}}</style></head><body>
+<h1>📅 Study Plan</h1><p style="color:#64748b;margin:0 0 16px;font-size:14px">Generated: ${new Date(plan.createdAt).toLocaleString()}</p>
+<div id="summary"><span id="prog-text">Loading…</span><div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div></div>
+<div id="root"></div>
+<script>(function(){const schedule=JSON.parse(decodeURIComponent('${planJson}'));const root=document.getElementById("root");const KEY="ssp_item_progress";const prog=JSON.parse(localStorage.getItem(KEY)||"{}");function k(i){return(i.dateISO||"live")+"|"+i.start+"|"+i.subject+"|"+i.topic+"|"+i.subtopic}function updateSummary(){const all=root.querySelectorAll("[data-item]");let total=all.length,done=0;all.forEach(x=>{if(x.querySelector("input").checked)done++;});const pct=total?Math.round(done/total*100):0;document.getElementById("prog-text").textContent="Progress: "+done+"/"+total+" ("+pct+"%)";document.getElementById("prog-fill").style.width=pct+"%";}const by={};schedule.forEach(s=>{const key=s.dateISO||("Day "+s.day);if(!by[key])by[key]={label:s.dateLabel||("Day "+s.day),items:[]};by[key].items.push(s);});Object.keys(by).forEach(key=>{const g=by[key];const sec=document.createElement("div");sec.className="card";sec.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center"><strong style="font-size:16px">'+g.label+'</strong><span style="font-size:12px;color:#64748b;background:#f1f5f9;padding:2px 10px;border-radius:999px">'+g.items.reduce((s,i)=>s+i.hours,0).toFixed(1)+'h</span></div>';g.items.forEach(i=>{const c=document.createElement("div");c.className="card";c.setAttribute("data-item","1");const ikey=k(i);const isDone=!!prog[ikey]?.done;if(isDone)c.classList.add("done-item");c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:11px;color:#94a3b8;margin-bottom:2px">'+i.subject+' · '+i.topic+'</div><div class="title" style="font-weight:700;font-size:14px">'+i.subtopic+'</div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:11px;color:#94a3b8">'+i.start+' – '+i.end+'</div><div style="margin-top:4px;font-size:11px;font-weight:700;background:#f1f5f9;border-radius:999px;padding:2px 10px;display:inline-block">'+i.hours+'h</div><label style="display:block;margin-top:8px;font-size:12px;color:#475569;cursor:pointer"><input type="checkbox" '+(isDone?"checked":"")+'style="accent-color:#6C63FF"/> Done</label></div></div>';const cb=c.querySelector("input");cb.addEventListener("change",()=>{prog[ikey]={done:cb.checked,doneAt:Date.now()};localStorage.setItem(KEY,JSON.stringify(prog));c.classList.toggle("done-item",cb.checked);updateSummary();});sec.appendChild(c);});root.appendChild(sec);});updateSummary();}());<\/script></body></html>`;
+        w.document.write(html);
+        w.document.close();
+      }
+
+      function exportCSV(plan) {
+        const header = ['Date', 'Day', 'Start', 'End', 'Hours', 'Subject', 'Topic', 'Subtopic'];
+        const rows = (plan.schedule || []).map(i =>
+          [i.dateISO, i.day, i.start, i.end, i.hours, i.subject, i.topic, i.subtopic]
+            .map(v => `"${String(v || '').replace(/"/g, '""')}"`)
+            .join(',')
+        );
+        const csv = [header.join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `study-plan-${plan.inputs?.startDate || plan.id}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      function deletePlan(id) {
+        if (!confirm('Delete this plan? This cannot be undone.')) return;
+        const all = JSON.parse(localStorage.getItem('ssp_plans') || '[]');
+        safeSet('ssp_plans', JSON.stringify(all.filter(p => p.id !== id)));
+        loadPlans();
+      }
+
+      function clearAll() {
+        if (!confirm('Delete ALL saved plans? This cannot be undone.')) return;
+        safeSet('ssp_plans', '[]');
+        loadPlans();
+      }
+
+      document.getElementById('filterEmail').addEventListener('input', loadPlans);
+      document.getElementById('sortBy').addEventListener('change', loadPlans);
+
+      // Pre-fill email from settings
+      document.getElementById('filterEmail').value = localStorage.getItem('ssp_email') || '';
+
+      loadPlans();
+    </script>
+  </body>
+</html>
