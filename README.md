@@ -6,7 +6,6 @@
 
 An AI-powered study planning application that automatically creates balanced day-wise schedules from your subjects, topics, and subtopics. Designed for students preparing for exams with progress tracking, quizzes, reminders, and productivity tools.
 
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![HTML](https://img.shields.io/badge/HTML5-Ready-orange)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6-yellow)
 ![Status](https://img.shields.io/badge/Status-Active-success)
@@ -212,12 +211,7 @@ No backend or additional installation required.
 
 **Gaurav Upadhyay**
 
-Computer Science Student & Developer
-
----
-
-## 📄 License
-
+Computer Science Student
 This project is licensed under the MIT License.
 
 ---
