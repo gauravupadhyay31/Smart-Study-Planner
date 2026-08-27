@@ -56,21 +56,23 @@ An AI-powered study planning application that automatically creates balanced day
 
 ## 🖥️ Screenshots
 
+<div align="center">
 ### Home Page
-Modern landing page introducing the Smart Study Planner.
+<img width="1000" height="675" alt="Screenshot 2026-08-27 145620" src="https://github.com/user-attachments/assets/03e7a6a6-3a0f-4309-a95c-d02de882236f" />
 
-### Features Section
-Explore all productivity and planning tools available.
 
 ### How It Works
-Simple four-step workflow for creating an exam-ready schedule.
+<img width="1000" height="675" alt="Screenshot 2026-08-27 145714" src="https://github.com/user-attachments/assets/54c7fa59-5063-4c00-8e53-165f7c90973d" />
+
 
 ### Planner Dashboard
-Add subjects, topics, subtopics, priorities, and generate a personalized study plan.
+<img width="1000" height="675" alt="Screenshot 2026-08-27 150119" src="https://github.com/user-attachments/assets/705a32a2-cb08-4daa-a03f-5fe6263e845d" />
+
 
 ### Study Schedule
-Track progress, access resources, take quizzes, and stay focused using built-in productivity tools.
+<img width="1000" height="675" alt="Screenshot 2026-08-27 150219" src="https://github.com/user-attachments/assets/dd5f782a-9a77-4ce6-9499-ca6a2f802b81" />
 
+</div>
 ---
 
 ## 🚀 How It Works
