@@ -57,6 +57,7 @@ An AI-powered study planning application that automatically creates balanced day
 ## 🖥️ Screenshots
 
 <div align="center">
+  
 ### Home Page
 <img width="1000" height="675" alt="Screenshot 2026-08-27 145620" src="https://github.com/user-attachments/assets/03e7a6a6-3a0f-4309-a95c-d02de882236f" />
 
