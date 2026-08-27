@@ -59,19 +59,19 @@ An AI-powered study planning application that automatically creates balanced day
 <div align="center">
   
 ### Home Page
-<img width="1000" height="675" alt="Screenshot 2026-08-27 145620" src="https://github.com/user-attachments/assets/03e7a6a6-3a0f-4309-a95c-d02de882236f" />
+<img width="1000" height="500" alt="Screenshot 2026-08-27 145620" src="https://github.com/user-attachments/assets/03e7a6a6-3a0f-4309-a95c-d02de882236f" />
 
 
 ### How It Works
-<img width="1000" height="675" alt="Screenshot 2026-08-27 145714" src="https://github.com/user-attachments/assets/54c7fa59-5063-4c00-8e53-165f7c90973d" />
+<img width="1000" height="500" alt="Screenshot 2026-08-27 145714" src="https://github.com/user-attachments/assets/54c7fa59-5063-4c00-8e53-165f7c90973d" />
 
 
 ### Planner Dashboard
-<img width="1000" height="675" alt="Screenshot 2026-08-27 150119" src="https://github.com/user-attachments/assets/705a32a2-cb08-4daa-a03f-5fe6263e845d" />
+<img width="1000" height="500" alt="Screenshot 2026-08-27 150119" src="https://github.com/user-attachments/assets/705a32a2-cb08-4daa-a03f-5fe6263e845d" />
 
 
 ### Study Schedule
-<img width="1000" height="675" alt="Screenshot 2026-08-27 150219" src="https://github.com/user-attachments/assets/dd5f782a-9a77-4ce6-9499-ca6a2f802b81" />
+<img width="1000" height="500" alt="Screenshot 2026-08-27 150219" src="https://github.com/user-attachments/assets/dd5f782a-9a77-4ce6-9499-ca6a2f802b81" />
 
 </div>
 ---
