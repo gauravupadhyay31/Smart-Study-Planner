@@ -67,11 +67,11 @@ An AI-powered study planning application that automatically creates balanced day
 
 
 ### Planner Dashboard
-<img width="1000" height="500" alt="Screenshot 2026-08-27 150119" src="https://github.com/user-attachments/assets/705a32a2-cb08-4daa-a03f-5fe6263e845d" />
+<img width="1000" height="575" alt="Screenshot 2026-08-27 150119" src="https://github.com/user-attachments/assets/705a32a2-cb08-4daa-a03f-5fe6263e845d" />
 
 
 ### Study Schedule
-<img width="1000" height="500" alt="Screenshot 2026-08-27 150219" src="https://github.com/user-attachments/assets/dd5f782a-9a77-4ce6-9499-ca6a2f802b81" />
+<img width="1000" height="575" alt="Screenshot 2026-08-27 150219" src="https://github.com/user-attachments/assets/dd5f782a-9a77-4ce6-9499-ca6a2f802b81" />
 
 </div>
 ---
