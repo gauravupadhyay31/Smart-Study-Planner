@@ -212,8 +212,3 @@ No backend or additional installation required.
 **Gaurav Upadhyay**
 
 Computer Science Student
-This project is licensed under the MIT License.
-
----
-
-### ⭐ If you found this project useful, please give it a star on GitHub!
